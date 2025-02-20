@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设备配置报价系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .config-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .config-group {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        select, .accessories {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+        }
+        .price-display {
+            font-size: 24px;
+            color: #2c3e50;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .accessory-option {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="config-section">
+        <div class="config-group">
+            <h3>设备类型</h3>
+            <select id="deviceType" onchange="updateConfig()">
+                <option value="electromagnetic_water">电磁水表</option>
+                <option value="electromagnetic_flow">电磁流量计</option>
+                <option value="ultrasonic_flow">超声波流量计</option>
+            </select>
+        </div>
+
+        <div class="config-group">
+            <h3>口径选择</h3>
+            <select id="caliber" onchange="updatePrice()"></select>
+        </div>
+
+        <div class="config-group">
+            <h3>附件配置</h3>
+            <div class="accessories" id="accessories">
+                <label class="accessory-option">
+                    <input type="checkbox" value="pressure_gauge" onchange="updatePrice()"> 压力计 (+¥200)
+                </label>
+                <label class="accessory-option">
+                    <input type="checkbox" value="remote_module" onchange="updatePrice()"> 远传模块 (+¥500)
+                </label>
+                <label class="accessory-option">
+                    <input type="checkbox" value="clamp" onchange="updatePrice()"> 抱箍 (+¥150)
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="price-display" id="totalPrice">
+        总价：¥0
+    </div>
+
+    <script>
+        // 价格配置数据
+        const priceData = {
+            // 设备基础价格（随机示例）
+            devices: {
+                electromagnetic_water: { 
+                    DN100: 1200, 
+                    DN200: 1800, 
+                    DN300: 2500,
+                    install: 300
+                },
+                electromagnetic_flow: {
+                    DN100: 1500,
+                    DN200: 2200,
+                    DN300: 3000,
+                    install: 400
+                },
+                ultrasonic_flow: {
+                    DN100: 2000,
+                    DN200: 2800,
+                    DN300: 3500,
+                    install: 500
+                }
+            },
+            accessories: {
+                pressure_gauge: 200,
+                remote_module: 500,
+                clamp: 150
+            }
+        };
+
+        // 初始化口径选项
+        function updateConfig() {
+            const deviceType = document.getElementById('deviceType').value;
+            const caliberSelect = document.getElementById('caliber');
+            
+            // 清空现有选项
+            caliberSelect.innerHTML = '';
+            
+            // 添加新选项
+            const calibers = Object.keys(priceData.devices[deviceType]).filter(k => k !== 'install');
+            calibers.forEach(caliber => {
+                const option = document.createElement('option');
+                option.value = caliber;
+                option.textContent = caliber;
+                caliberSelect.appendChild(option);
+            });
+            
+            updatePrice();
+        }
+
+        // 计算总价
+        function updatePrice() {
+            const deviceType = document.getElementById('deviceType').value;
+            const caliber = document.getElementById('caliber').value;
+            const accessories = [...document.querySelectorAll('#accessories input:checked')]
+                                .map(input => input.value);
+            
+            // 计算各部分价格
+            const devicePrice = priceData.devices[deviceType][caliber];
+            const installFee = priceData.devices[deviceType].install;
+            const accessoriesPrice = accessories.reduce((sum, acc) => sum + priceData.accessories[acc], 0);
+            
+            const total = devicePrice + installFee + accessoriesPrice;
+            
+            document.getElementById('totalPrice').textContent = `总价：¥${total}`;
+        }
+
+        // 初始化页面
+        window.onload = () => {
+            updateConfig();
+            updatePrice();
+        };
+    </script>
+</body>
+</html>
